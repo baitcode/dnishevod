@@ -20,6 +20,7 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
         self.walk_velocity = 1200
         self.run_velocity = 1800
         self.actions_applied = False
+        self.jumping = False
         self.body = world.CreateDynamicBody(
             position=position,
             userData=self,
@@ -35,6 +36,9 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
     def move(self, vector):
         self.is_mode_stopped = False
 
+        if vector[1] > 0 and not self.jumping:
+            self.jump()
+
         horizontal_force = (
             self.walk_velocity + (self.run_velocity * self.is_mode_running)
         )
@@ -43,7 +47,7 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
             0,
         )
         if vector[0] and self.horizontal_direction != vector[0]:
-            self.horizontal_direction = vector[0]
+            self.horizontal_direction = vector[0] * 5
             self.turn()
 
         if vector[0] == 0 and vector[1] == 0:
@@ -51,6 +55,12 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
 
     def turn(self):
         self.is_mode_running = False
+
+    def jump(self):
+        self.jumping = True
+        self.body.ApplyLinearImpulse(
+            (0, 300), self.body.GetWorldPoint(self.body.position), True
+        )
 
     def stop(self):
         self.is_mode_running = False
