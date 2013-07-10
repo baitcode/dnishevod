@@ -15,18 +15,19 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
             scale=0.2
         )
         self.is_mode_running = False
-        self.velocity = (0, 0)
+        self.force = (0, 0)
         self.horizontal_direction = 1
-        self.walk_velocity = 120
-        self.run_velocity = 180
+        self.walk_velocity = 1200
+        self.run_velocity = 1800
         self.actions_applied = False
         self.body = world.CreateDynamicBody(
             position=position,
             userData=self,
-            mass=50
+            mass=50,
         )
         self.body.CreatePolygonFixture(
-            box=(0.5, 0.58)
+            box=(0.5, 0.58),
+            friction=15
         )
         self.lines = []
         self.drawDebugFixtures(parent)
@@ -34,25 +35,19 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
     def move(self, vector):
         self.is_mode_stopped = False
 
-        horizontal_velocity = (
+        horizontal_force = (
             self.walk_velocity + (self.run_velocity * self.is_mode_running)
         )
-        vertical_velocity = self.walk_velocity
-        self.velocity = (
-            vector[0] * horizontal_velocity,
-            vector[1] * vertical_velocity
+        self.force = (
+            vector[0] * horizontal_force,
+            0,
         )
-
         if vector[0] and self.horizontal_direction != vector[0]:
             self.horizontal_direction = vector[0]
             self.turn()
 
         if vector[0] == 0 and vector[1] == 0:
             self.stop()
-
-        if not self.actions_applied:
-            self.do(move_actions.Move())
-            self.actions_applied = True
 
     def turn(self):
         self.is_mode_running = False
@@ -65,6 +60,7 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
         self.is_mode_running = True
 
     def update_position(self):
+        self.body.ApplyForceToCenter(self.force, True)
         self.x = self.body.position.x * PIXELS_PER_METER
         self.y = self.body.position.y * PIXELS_PER_METER
         self.updateDebugFixtures()
