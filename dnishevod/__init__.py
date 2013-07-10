@@ -84,9 +84,6 @@ class Level(cocos.layer.Layer):
         vector = self.get_direction_method()
         self.hero.move(vector)
 
-    def on_enter(self):
-        pass
-
 
 class Game(object):
     def create_level(self):
