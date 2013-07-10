@@ -56,9 +56,9 @@ class Level(cocos.layer.Layer):
         self.hero.move(vector)
 
     def step(self, tick):
+        self.hero.update_position(tick)
         self.world.Step(tick, self.vel_iters, self.pos_iters)
         self.world.ClearForces()
-        self.hero.update_position()
 
 
 class Game(object):

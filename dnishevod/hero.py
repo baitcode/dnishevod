@@ -19,11 +19,12 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
         self.horizontal_direction = 1
         self.walk_velocity = 1200
         self.run_velocity = 1800
+        self.max_speed = 5
         self.actions_applied = False
         self.body = world.CreateDynamicBody(
             position=position,
             userData=self,
-            mass=50,
+            mass=20,
         )
         self.body.CreatePolygonFixture(
             box=(0.5, 0.58),
@@ -59,8 +60,31 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
     def run(self):
         self.is_mode_running = True
 
-    def update_position(self):
-        self.body.ApplyForceToCenter(self.force, True)
+    def update_position(self, tick):
+        force = self.limit_force(tick)
+        self.body.ApplyForceToCenter(force, True)
+
         self.x = self.body.position.x * PIXELS_PER_METER
         self.y = self.body.position.y * PIXELS_PER_METER
         self.updateDebugFixtures()
+
+    def limit_force(self, tick):
+        velocity = self.body.linearVelocity.x
+        if abs(velocity) < 0.001:
+            return self.force
+        force = self.force[0]
+        if not force:
+            return self.force
+        if force < 0 and velocity > 0:
+            return self.force
+        if force > 0 and velocity < 0:
+            return self.force
+
+        max_force = (self.max_speed - abs(velocity))*self.body.mass/tick
+        max_force = min(abs(force), max_force)
+        if force < 0:
+            max_force = -1 * max_force
+        return max_force, self.force[1]
+
+
+
