@@ -31,7 +31,7 @@ class Level(cocos.layer.Layer):
             doSleep=True
         )
 
-        self.hero = Hero(self.world, (5, 5), 0.5, 1, self)
+        self.hero = Hero(self.world, (5, 5), self)
         self.ground = Ground(self.world, self)
         self.add(self.hero)
 

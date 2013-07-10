@@ -9,8 +9,11 @@ WINDOW_WIDTH = getattr(settings, 'WINDOW_WIDTH', 100)
 
 
 class Hero(cocos.sprite.Sprite, DebugMixin):
-    def __init__(self, world, position, width, height, parent):
-        super(Hero, self).__init__('dnishevod/assets/hero/img/hero.png', scale=0.2)
+    def __init__(self, world, position, parent):
+        super(Hero, self).__init__(
+            'dnishevod/assets/hero/img/hero.png',
+            scale=0.2
+        )
         self.is_mode_running = False
         self.velocity = (0, 0)
         self.horizontal_direction = 1
@@ -23,7 +26,7 @@ class Hero(cocos.sprite.Sprite, DebugMixin):
             mass=50
         )
         self.body.CreatePolygonFixture(
-            box=(width, height)
+            box=(0.5, 0.58)
         )
         self.lines = []
         self.drawDebugFixtures(parent)
