@@ -1,67 +1,39 @@
 import cocos
-from cocos.actions import move_actions
 from pyglet.window import key
+from ground import Ground
+from hero import Hero
+import settings
 from utils.key_tracker import KeyTracker
+import Box2D as b2d
 
-
-class Hero(cocos.sprite.Sprite):
-    def __init__(self):
-        super(Hero, self).__init__('assets/hero/img/hero.png', scale=0.2)
-        self.is_mode_running = False
-        self.velocity = (0, 0)
-        self.horizontal_direction = 1
-        self.walk_velocity = 120
-        self.run_velocity = 180
-        self.actions_applied = False
-
-    def move(self, vector):
-        self.is_mode_stopped = False
-
-        horizontal_velocity = (
-            self.walk_velocity + (self.run_velocity * self.is_mode_running)
-        )
-        vertical_velocity = self.walk_velocity
-        self.velocity = (
-            vector[0] * horizontal_velocity,
-            vector[1] * vertical_velocity
-        )
-
-        if vector[0] and self.horizontal_direction != vector[0]:
-            self.horizontal_direction = vector[0]
-            self.turn()
-
-        if vector[0] == 0 and vector[1] == 0:
-            self.stop()
-
-        if not self.actions_applied:
-            self.do(move_actions.Move())
-            self.actions_applied = True
-
-    def turn(self):
-        self.is_mode_running = False
-
-    def stop(self):
-        self.is_mode_running = False
-        self.is_mode_stopped = True
-
-    def run(self):
-        self.is_mode_running = True
+PIXELS_PER_METER = getattr(settings, 'PIXELS_PER_METER', 1)
+WINDOW_HEIGHT = getattr(settings, 'WINDOW_HEIGHT', 100)
 
 
 class Level(cocos.layer.Layer):
-
     def __init__(self):
         super(Level, self).__init__()
+
         self.is_event_handler = True
-        self.hero = Hero()
-        self.hero.position = 300, 300
-        self.add(self.hero)
         self.keys = set()
         self.keyTracker = KeyTracker()
         self.keyTracker.register_double_key_handler(
             (key.LEFT, key.RIGHT),
             self.on_double_key_pressed
         )
+        self.schedule(self.step)
+
+        gravity = getattr(settings, 'GRAVITY', (0, 0))
+        self.vel_iters = 6
+        self.pos_iters = 6
+        self.world = b2d.b2World(
+            gravity=gravity,
+            doSleep=True
+        )
+
+        self.hero = Hero(self.world, (5, 5), 0.5, 1, self)
+        self.ground = Ground(self.world, self)
+        self.add(self.hero)
 
     def on_double_key_pressed(self, symbol):
         self.hero.run()
@@ -79,10 +51,14 @@ class Level(cocos.layer.Layer):
         self.hero.move(vector)
 
     def on_key_release(self, symbol, modifiers):
-
         self.keys.discard(symbol)
         vector = self.get_direction_method()
         self.hero.move(vector)
+
+    def step(self, tick):
+        self.world.Step(tick, self.vel_iters, self.pos_iters)
+        self.world.ClearForces()
+        self.hero.update_position()
 
 
 class Game(object):
@@ -90,6 +66,10 @@ class Game(object):
         return Level()
 
     def __init__(self):
+        cocos.director.director.init(
+            width=getattr(settings, 'WINDOW_WIDTH', 100),
+            height=getattr(settings, 'WINDOW_HEIGHT', 100)
+        )
         self.level = cocos.scene.Scene(
             self.create_level()
         )
@@ -98,5 +78,3 @@ class Game(object):
         cocos.director.director.run(self.level)
 
 
-cocos.director.director.init()
-Game().run()
