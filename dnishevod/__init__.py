@@ -65,12 +65,38 @@ class Game(object):
     def create_level(self):
         return Level()
 
+    def create_debug(self):
+        layer = cocos.layer.Layer()
+        step = 0
+        color = (20, 150, 20, 50)
+        while step < settings.WINDOW_WIDTH:
+            line = cocos.draw.Line(
+                (step, 0), (step, settings.WINDOW_HEIGHT),
+                color=color
+            )
+            layer.add(line)
+            step += settings.PIXELS_PER_METER
+
+        step = 0
+        while step < settings.WINDOW_HEIGHT:
+            line = cocos.draw.Line(
+                (0, step),
+                (settings.WINDOW_WIDTH, step),
+                color=color
+            )
+            layer.add(line)
+            step += settings.PIXELS_PER_METER
+        return layer
+
+
+
     def __init__(self):
         cocos.director.director.init(
             width=getattr(settings, 'WINDOW_WIDTH', 100),
             height=getattr(settings, 'WINDOW_HEIGHT', 100)
         )
         self.level = cocos.scene.Scene(
+            self.create_debug(),
             self.create_level()
         )
 
